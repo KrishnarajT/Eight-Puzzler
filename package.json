@@ -1,0 +1,17 @@
+{
+  "name": "eight-puzzler",
+  "module": "index.js",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@tabler/icons": "^2.35.0",
+    "daisyui": "latest",
+    "prettier-plugin-tailwind": "^2.2.12",
+    "tailwindcss": "^3.3.3"
+  }
+}
