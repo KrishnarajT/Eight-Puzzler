@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tabler/icons": "^2.35.0",
+    "axios": "^1.5.1",
     "daisyui": "latest",
     "parcel": "^2.9.3",
     "prettier-plugin-tailwind": "^2.2.12",
