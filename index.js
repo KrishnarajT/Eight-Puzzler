@@ -99,6 +99,18 @@ function shuffle() {
 
 // Define the PuzzleState class
 class PuzzleState {
+	static goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+	static moves = {
+		0: [1, 3],
+		1: [0, 2, 4],
+		2: [1, 5],
+		3: [0, 4, 6],
+		4: [1, 3, 5, 7],
+		5: [2, 4, 8],
+		6: [3, 7],
+		7: [4, 6, 8],
+		8: [5, 7],
+	};
 	constructor(state) {
 		this.state = state;
 		this.gScore = 0;
@@ -111,10 +123,15 @@ class PuzzleState {
 		for (let i = 0; i < this.state.length; i++) {
 			if (this.state[i] !== 0) {
 				distance +=
-					Math.abs((i % 3) - (goalState.indexOf(this.state[i]) % 3)) +
+					Math.abs(
+						(i % 3) -
+							(PuzzleState.goalState.indexOf(this.state[i]) % 3)
+					) +
 					Math.abs(
 						Math.floor(i / 3) -
-							Math.floor(goalState.indexOf(this.state[i]) / 3)
+							Math.floor(
+								PuzzleState.goalState.indexOf(this.state[i]) / 3
+							)
 					);
 			}
 		}
@@ -130,9 +147,9 @@ class PuzzleState {
 	getNeighbors() {
 		let neighbors = [];
 		let index = this.state.indexOf(0);
-		for (let i = 0; i < moves[index].length; i++) {
+		for (let i = 0; i < PuzzleState.moves[index].length; i++) {
 			let neighbor = this.state.slice();
-			let swapIndex = moves[index][i];
+			let swapIndex = PuzzleState.moves[index][i];
 			[neighbor[index], neighbor[swapIndex]] = [
 				neighbor[swapIndex],
 				neighbor[index],
@@ -162,7 +179,7 @@ class PuzzleSolver {
 					currentIndex = i;
 				}
 			}
-			if (current.state.join("") === goalState.join("")) {
+			if (current.state.join("") === PuzzleState.goalState.join("")) {
 				let solution = [current.state[current.state.indexOf(0) ^ 1]];
 				while (current !== this.startState) {
 					current = this.closedSet.find((state) =>
