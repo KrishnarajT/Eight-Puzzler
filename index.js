@@ -1,5 +1,5 @@
 // Sample puzzle configuration (numbers represent puzzle pieces)
-const puzzleConfiguration = [1, 2, 3, 4, 5, 6, 7, 8, 0]; // 0 represents the empty space
+var puzzleConfiguration = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // 9 represents the empty space
 
 // Function to create puzzle board
 function createPuzzleBoard() {
@@ -8,12 +8,12 @@ function createPuzzleBoard() {
 
 	// Loop through puzzle configuration
 	puzzleConfiguration.forEach((number) => {
-		if (number === 0) {
+		if (number === 9) {
 			// Create empty grid item
 			const gridItem = document.createElement("div");
 			gridItem.className =
 				"puzzle-item bg-transparent text-4xl rounded-md w-28 h-28 flex items-center justify-center";
-			gridItem.id = 0;
+			gridItem.id = 9;
 			puzzleBoard.appendChild(gridItem);
 			return;
 		}
@@ -46,33 +46,46 @@ function updatePuzzleBoard() {
 }
 
 // Function to move tile
-function moveTile(number, current_puzzle_config) {
+function moveTile(number) {
 	const tile = document.getElementById(number);
 
 	// Check if tile is movable
 	if (isMovable(tile)) {
 		// change the puzzle configuration
 		const index = puzzleConfiguration.indexOf(parseInt(number));
-		const zeroIndex = puzzleConfiguration.indexOf(0);
-		puzzleConfiguration[index] = 0;
+		const zeroIndex = puzzleConfiguration.indexOf(9);
+		puzzleConfiguration[index] = 9;
 		puzzleConfiguration[zeroIndex] = parseInt(number);
-        console.log(puzzleConfiguration);
-        
-        // if the puzzle config is the same as the initial one, return
-        if (JSON.stringify(puzzleConfiguration) === JSON.stringify(current_puzzle_config)) {
-            // change to the previous puzzle config
-            puzzleConfiguration[index] = parseInt(number);
-            puzzleConfiguration[zeroIndex] = 0;
-            return;
-        }
+		console.log(puzzleConfiguration);
 		updatePuzzleBoard();
 	}
+}
+
+// Function to move tile
+function pseudo_moveTile(number) {
+	const tile = document.getElementById(number);
+
+	// change the puzzle configuration
+	const index = puzzleConfiguration.indexOf(parseInt(number));
+	const zeroIndex = puzzleConfiguration.indexOf(9);
+	const new_puzzle_config = puzzleConfiguration.slice();
+	new_puzzle_config[index] = 9;
+	new_puzzle_config[zeroIndex] = parseInt(number);
+	console.log(
+		"Testing moveTile",
+		number,
+		" new:",
+		puzzleConfiguration,
+		"vs old:",
+		new_puzzle_config
+	);
+	return new_puzzle_config;
 }
 
 // Function to check if tile is movable
 function isMovable(tile) {
 	// Get empty tile
-	const emptyTile = document.getElementById(0);
+	const emptyTile = document.getElementById(9);
 
 	// Check if tile is in same row or column as empty tile
 	if (tile.id === emptyTile.id) {
@@ -82,7 +95,7 @@ function isMovable(tile) {
 	// Check if tile is in same row as empty tile
 	// get its index in the puzzleconfig
 	const index = puzzleConfiguration.indexOf(parseInt(tile.id));
-	const emptyIndex = puzzleConfiguration.indexOf(0);
+	const emptyIndex = puzzleConfiguration.indexOf(9);
 
 	// check if they are in the same row
 	if (Math.floor(index / 3) === Math.floor(emptyIndex / 3)) {
@@ -105,12 +118,6 @@ function isMovable(tile) {
 			return true;
 		}
 	}
-
-	// Check if tile is in same column as empty tile
-	if (tile.previousSibling === emptyTile || tile.nextSibling === emptyTile) {
-		return true;
-	}
-
 	return false;
 }
 
@@ -141,14 +148,14 @@ function shuffle() {
 
 // Function to calculate Manhattan Distance for a given tile
 function manhattanDistance(tile, targetPosition) {
-    const currentPosition = puzzleConfiguration.indexOf(parseInt(tile.id));
-    const currentRow = Math.floor(currentPosition / 3);
-    const currentCol = currentPosition % 3;
+	const currentPosition = puzzleConfiguration.indexOf(parseInt(tile.id));
+	const currentRow = Math.floor(currentPosition / 3);
+	const currentCol = currentPosition % 3;
 
-    const targetRow = Math.floor(targetPosition / 3);
-    const targetCol = targetPosition % 3;
+	const targetRow = Math.floor(targetPosition / 3);
+	const targetCol = targetPosition % 3;
 
-    return Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
+	return Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
 }
 
 // Function to solve puzzle using A* algorithm
@@ -167,29 +174,66 @@ function solve() {
 			: manhattanDistance(document.getElementById(number), number - 1)
 	);
 
-	// Find the tile with the minimum Manhattan Distance (heuristic value)
-	const minHeuristicValue = Math.min(...heuristicValues);
-	const minHeuristicIndex = heuristicValues.indexOf(minHeuristicValue);
-	const minHeuristicTile = document.getElementById(
-		puzzleConfiguration[minHeuristicIndex]
-    );
-    
-    // order the tiles by their heuristic values
-    const orderedTiles = puzzleConfiguration.map((number) => document.getElementById(number));
-    orderedTiles.sort((a, b) => {
-        const aIndex = puzzleConfiguration.indexOf(parseInt(a.id));
-        const bIndex = puzzleConfiguration.indexOf(parseInt(b.id));
-        return heuristicValues[aIndex] - heuristicValues[bIndex];
-    });
+	// find the sum of the heuristic values
+	const heuristicSum = heuristicValues.reduce((a, b) => a + b, 0);
 
-    const current_puzzle_config = puzzleConfiguration.slice();
-    // try to move them in order
-    orderedTiles.forEach((tile) => {
-        // make sure the puzzle config is not the same as the initial one
-        if (isMovable(tile)) {
-            moveTile(tile.id, current_puzzle_config);
-            // wait for 1 second
-            setTimeout(solve, 1000);
-        }
-    });
+	console.log("h values", heuristicValues);
+	console.log("h sum", heuristicSum);
+
+	// order the tiles by their heuristic values
+	const orderedTiles = puzzleConfiguration.map((number) =>
+		document.getElementById(number)
+	);
+	orderedTiles.sort((a, b) => {
+		const aIndex = puzzleConfiguration.indexOf(parseInt(a.id));
+		const bIndex = puzzleConfiguration.indexOf(parseInt(b.id));
+		return heuristicValues[aIndex] - heuristicValues[bIndex];
+	});
+
+	// check if each of those tiles is movable, if it is then find the new heuristic sum of the resulting config by moving that tile. do this for all tiles, and then finally check which sum was the lowest. move that tile.
+	let min_heuristic_sum_tile;
+	const possible_heuristic_sums = [];
+	orderedTiles.forEach((tile) => {
+		if (isMovable(tile)) {
+			const new_puzzle_config = pseudo_moveTile(tile.id);
+			const new_heuristic_values = new_puzzle_config.map((number) =>
+				number === 0
+					? manhattanDistance(document.getElementById(number), 9)
+					: manhattanDistance(
+							document.getElementById(number),
+							number - 1
+					  )
+			);
+			const new_heuristic_sum = new_heuristic_values.reduce(
+				(a, b) => a + b,
+				0
+			);
+			possible_heuristic_sums.push({
+				new_heuristic_sum,
+				tile_id: tile.id,
+			});
+		}
+	});
+	// find lowest heuristic sum tile to move
+	const min_heuristic_sum = Math.min(
+		...possible_heuristic_sums.map((item) => item.new_heuristic_sum)
+	);
+	min_heuristic_sum_tile = possible_heuristic_sums.find(
+		(item) => item.new_heuristic_sum === min_heuristic_sum
+	);
+
+	console.log("The heurestics were: ", possible_heuristic_sums);
+	console.log(
+		"After trying all movable configs, the lowest heuristic sum is",
+		min_heuristic_sum_tile
+	);
+
+	console.log("Moving tile", min_heuristic_sum_tile);
+
+	setTimeout(() => {
+		moveTile(min_heuristic_sum_tile.tile_id);
+	}, 1000);
+	setTimeout(() => {
+		solve();
+	}, 1000);
 }
