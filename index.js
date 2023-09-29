@@ -3,15 +3,17 @@ const puzzleConfiguration = [1, 2, 3, 4, 5, 6, 7, 8, 0]; // 0 represents the emp
 
 // Function to create puzzle board
 function createPuzzleBoard() {
+	// Get puzzle board element
 	const puzzleBoard = document.getElementById("puzzle-board");
-	console.log(puzzleBoard);
+
+	// Loop through puzzle configuration
 	puzzleConfiguration.forEach((number) => {
 		if (number === 0) {
 			// Create empty grid item
 			const gridItem = document.createElement("div");
 			gridItem.className =
 				"puzzle-item bg-transparent text-4xl rounded-md w-28 h-28 flex items-center justify-center";
-			gridItem.id = "empty";
+			gridItem.id = 0;
 			puzzleBoard.appendChild(gridItem);
 			return;
 		}
@@ -28,32 +30,41 @@ function createPuzzleBoard() {
 	});
 }
 
+// Call createPuzzleBoard function to create initial puzzle board
 createPuzzleBoard();
 
+// Function to update puzzle board
 function updatePuzzleBoard() {
+	// Get puzzle board element
 	const puzzleBoard = document.getElementById("puzzle-board");
+
+	// Clear puzzle board
 	puzzleBoard.innerHTML = "";
+
+	// Recreate puzzle board
 	createPuzzleBoard();
 }
 
 // Function to move tile
 function moveTile(number) {
-	const emptyTile = document.getElementById("empty");
 	const tile = document.getElementById(number);
 
 	// Check if tile is movable
 	if (isMovable(tile)) {
-		// Move tile
-		emptyTile.textContent = number;
-		emptyTile.id = number;
-		tile.textContent = "";
-		tile.id = "empty";
+		// change the puzzle configuration
+		const index = puzzleConfiguration.indexOf(parseInt(number));
+		const zeroIndex = puzzleConfiguration.indexOf(0);
+		puzzleConfiguration[index] = 0;
+		puzzleConfiguration[zeroIndex] = parseInt(number);
+		console.log(puzzleConfiguration);
+		updatePuzzleBoard();
 	}
 }
 
 // Function to check if tile is movable
 function isMovable(tile) {
-	const emptyTile = document.getElementById("empty");
+	// Get empty tile
+	const emptyTile = document.getElementById(0);
 
 	// Check if tile is in same row or column as empty tile
 	if (tile.id === emptyTile.id) {
@@ -61,8 +72,30 @@ function isMovable(tile) {
 	}
 
 	// Check if tile is in same row as empty tile
-	if (tile.parentNode === emptyTile.parentNode) {
-		return true;
+	// get its index in the puzzleconfig
+	const index = puzzleConfiguration.indexOf(parseInt(tile.id));
+	const emptyIndex = puzzleConfiguration.indexOf(0);
+
+	// check if they are in the same row
+	if (Math.floor(index / 3) === Math.floor(emptyIndex / 3)) {
+		// check if there is a tile between them
+		// find the difference between the indices, if its greater than one, they are not together.
+		if (Math.abs(index - emptyIndex) > 1) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	// check if they are in the same column
+	if (index % 3 === emptyIndex % 3) {
+		// check if there is a tile between them
+		// find the difference between the indices, if its greater than 3, they are not together.
+		if (Math.abs(index - emptyIndex) > 3) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	// Check if tile is in same column as empty tile
@@ -75,6 +108,7 @@ function isMovable(tile) {
 
 // Function to check if puzzle is solved
 function isSolved() {
+	// Get puzzle board element and puzzle items
 	const puzzleBoard = document.getElementById("puzzle-board");
 	const puzzleItems = puzzleBoard.childNodes;
 
@@ -97,217 +131,12 @@ function shuffle() {
 	updatePuzzleBoard();
 }
 
-// Define the PuzzleState class
-class PuzzleState {
-	static goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-	static moves = {
-		0: [1, 3],
-		1: [0, 2, 4],
-		2: [1, 5],
-		3: [0, 4, 6],
-		4: [1, 3, 5, 7],
-		5: [2, 4, 8],
-		6: [3, 7],
-		7: [4, 6, 8],
-		8: [5, 7],
-	};
-	constructor(state) {
-		this.state = state;
-		this.gScore = 0;
-		this.fScore = this.gScore + this.heuristic();
-	}
-
-	// Define the heuristic function (Manhattan distance)
-	heuristic() {
-		let distance = 0;
-		for (let i = 0; i < this.state.length; i++) {
-			if (this.state[i] !== 0) {
-				distance +=
-					Math.abs(
-						(i % 3) -
-							(PuzzleState.goalState.indexOf(this.state[i]) % 3)
-					) +
-					Math.abs(
-						Math.floor(i / 3) -
-							Math.floor(
-								PuzzleState.goalState.indexOf(this.state[i]) / 3
-							)
-					);
-			}
-		}
-		return distance;
-	}
-
-	// Define the equals function
-	equals(other) {
-		return this.state.join("") === other.state.join("");
-	}
-
-	// Define the getNeighbors function
-	getNeighbors() {
-		let neighbors = [];
-		let index = this.state.indexOf(0);
-		for (let i = 0; i < PuzzleState.moves[index].length; i++) {
-			let neighbor = this.state.slice();
-			let swapIndex = PuzzleState.moves[index][i];
-			[neighbor[index], neighbor[swapIndex]] = [
-				neighbor[swapIndex],
-				neighbor[index],
-			];
-			neighbors.push(new PuzzleState(neighbor));
-		}
-		return neighbors;
-	}
-}
-
-// Define the PuzzleSolver class
-class PuzzleSolver {
-	constructor(startState) {
-		this.startState = startState;
-		this.openSet = [startState];
-		this.closedSet = [];
-	}
-
-	// Define the solve function
-	solve() {
-		while (this.openSet.length > 0) {
-			let current = this.openSet[0];
-			let currentIndex = 0;
-			for (let i = 1; i < this.openSet.length; i++) {
-				if (this.openSet[i].fScore < current.fScore) {
-					current = this.openSet[i];
-					currentIndex = i;
-				}
-			}
-			if (current.state.join("") === PuzzleState.goalState.join("")) {
-				let solution = [current.state[current.state.indexOf(0) ^ 1]];
-				while (current !== this.startState) {
-					current = this.closedSet.find((state) =>
-						state.equals(current.parent)
-					);
-					solution.unshift(
-						current.state[current.state.indexOf(0) ^ 1]
-					);
-				}
-				return solution;
-			}
-			this.openSet.splice(currentIndex, 1);
-			this.closedSet.push(current);
-			let neighbors = current.getNeighbors();
-			for (let i = 0; i < neighbors.length; i++) {
-				let neighbor = neighbors[i];
-				if (this.closedSet.some((state) => state.equals(neighbor))) {
-					continue;
-				}
-				let tentativeGScore = current.gScore + 1;
-				if (!this.openSet.some((state) => state.equals(neighbor))) {
-					neighbor.gScore = tentativeGScore;
-					neighbor.fScore = neighbor.gScore + neighbor.heuristic();
-					neighbor.parent = current;
-					this.openSet.push(neighbor);
-				} else if (tentativeGScore >= neighbor.gScore) {
-					continue;
-				}
-				neighbor.gScore = tentativeGScore;
-				neighbor.fScore = neighbor.gScore + neighbor.heuristic();
-				neighbor.parent = current;
-			}
-		}
-		return null;
-	}
-}
-
 // Function to solve puzzle using A* algorithm
 function solve() {
 	// Check if puzzle is already solved
 	if (isSolved()) {
 		return;
 	}
-
-	// Create puzzle state
-	const puzzleState = new PuzzleState(puzzleConfiguration);
-
-	// Create puzzle solver
-	const puzzleSolver = new PuzzleSolver(puzzleState);
-
-	// Solve puzzle
-	const solution = puzzleSolver.solve();
-
-	// Animate solution
-	animateSolution(solution);
-}
-
-// Function to animate solution
-function animateSolution(solution) {
-	// Check if puzzle is already solved
-	if (isSolved()) {
-		return;
-	}
-
-	// Animate solution
-	for (let i = 0; i < solution.length; i++) {
-		setTimeout(() => {
-			moveTile(solution[i]);
-		}, i * 500);
-	}
-}
-
-// Function to reset puzzle
-function reset() {
-	// Reset puzzle configuration
-	puzzleConfiguration.sort();
-
-	// Update puzzle board
-	updatePuzzleBoard();
-}
-
-// Function to clear puzzle
-function clear() {
-	// Clear puzzle configuration
-	puzzleConfiguration.fill(0);
-
-	// Update puzzle board
-	updatePuzzleBoard();
-}
-
-// Function to show puzzle configuration
-function showConfiguration() {
-	// Show puzzle configuration
-	alert(puzzleConfiguration);
-}
-
-// Function to show puzzle state
-function showState() {
-	// Create puzzle state
-	const puzzleState = new PuzzleState(puzzleConfiguration);
-
-	// Show puzzle state
-	alert(puzzleState);
-}
-
-// Function to show puzzle solver
-function showSolver() {
-	// Create puzzle state
-	const puzzleState = new PuzzleState(puzzleConfiguration);
-
-	// Create puzzle solver
-	const puzzleSolver = new PuzzleSolver(puzzleState);
-
-	// Show puzzle solver
-	alert(puzzleSolver);
-}
-
-// Function to show puzzle solution
-function showSolution() {
-	// Create puzzle state
-	const puzzleState = new PuzzleState(puzzleConfiguration);
-
-	// Create puzzle solver
-	const puzzleSolver = new PuzzleSolver(puzzleState);
-
-	// Solve puzzle
-	const solution = puzzleSolver.solve();
-
-	// Show puzzle solution
-	alert(solution);
+	console.log(puzzleConfiguration);
+	console.log(isSolved());
 }
