@@ -46,7 +46,7 @@ function updatePuzzleBoard() {
 }
 
 // Function to move tile
-function moveTile(number) {
+function moveTile(number, current_puzzle_config) {
 	const tile = document.getElementById(number);
 
 	// Check if tile is movable
@@ -56,7 +56,15 @@ function moveTile(number) {
 		const zeroIndex = puzzleConfiguration.indexOf(0);
 		puzzleConfiguration[index] = 0;
 		puzzleConfiguration[zeroIndex] = parseInt(number);
-		console.log(puzzleConfiguration);
+        console.log(puzzleConfiguration);
+        
+        // if the puzzle config is the same as the initial one, return
+        if (JSON.stringify(puzzleConfiguration) === JSON.stringify(current_puzzle_config)) {
+            // change to the previous puzzle config
+            puzzleConfiguration[index] = parseInt(number);
+            puzzleConfiguration[zeroIndex] = 0;
+            return;
+        }
 		updatePuzzleBoard();
 	}
 }
@@ -131,6 +139,18 @@ function shuffle() {
 	updatePuzzleBoard();
 }
 
+// Function to calculate Manhattan Distance for a given tile
+function manhattanDistance(tile, targetPosition) {
+    const currentPosition = puzzleConfiguration.indexOf(parseInt(tile.id));
+    const currentRow = Math.floor(currentPosition / 3);
+    const currentCol = currentPosition % 3;
+
+    const targetRow = Math.floor(targetPosition / 3);
+    const targetCol = targetPosition % 3;
+
+    return Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
+}
+
 // Function to solve puzzle using A* algorithm
 function solve() {
 	// Check if puzzle is already solved
@@ -139,4 +159,37 @@ function solve() {
 	}
 	console.log(puzzleConfiguration);
 	console.log(isSolved());
+
+	// Calculate the Manhattan Distance for each tile
+	const heuristicValues = puzzleConfiguration.map((number) =>
+		number === 0
+			? manhattanDistance(document.getElementById(number), 9)
+			: manhattanDistance(document.getElementById(number), number - 1)
+	);
+
+	// Find the tile with the minimum Manhattan Distance (heuristic value)
+	const minHeuristicValue = Math.min(...heuristicValues);
+	const minHeuristicIndex = heuristicValues.indexOf(minHeuristicValue);
+	const minHeuristicTile = document.getElementById(
+		puzzleConfiguration[minHeuristicIndex]
+    );
+    
+    // order the tiles by their heuristic values
+    const orderedTiles = puzzleConfiguration.map((number) => document.getElementById(number));
+    orderedTiles.sort((a, b) => {
+        const aIndex = puzzleConfiguration.indexOf(parseInt(a.id));
+        const bIndex = puzzleConfiguration.indexOf(parseInt(b.id));
+        return heuristicValues[aIndex] - heuristicValues[bIndex];
+    });
+
+    const current_puzzle_config = puzzleConfiguration.slice();
+    // try to move them in order
+    orderedTiles.forEach((tile) => {
+        // make sure the puzzle config is not the same as the initial one
+        if (isMovable(tile)) {
+            moveTile(tile.id, current_puzzle_config);
+            // wait for 1 second
+            setTimeout(solve, 1000);
+        }
+    });
 }
