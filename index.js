@@ -1,5 +1,6 @@
 // Sample puzzle configuration (numbers represent puzzle pieces)
 var puzzleConfiguration = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // 9 represents the empty space
+var puz_confs = [];
 
 // Function to create puzzle board
 function createPuzzleBoard() {
@@ -147,8 +148,8 @@ function shuffle() {
 }
 
 // Function to calculate Manhattan Distance for a given tile
-function manhattanDistance(tile, targetPosition) {
-	const currentPosition = puzzleConfiguration.indexOf(parseInt(tile.id));
+function manhattanDistance(tile, targetPosition, puzconfig) {
+	const currentPosition = puzconfig.indexOf(parseInt(tile.id));
 	const currentRow = Math.floor(currentPosition / 3);
 	const currentCol = currentPosition % 3;
 
@@ -156,6 +157,18 @@ function manhattanDistance(tile, targetPosition) {
 	const targetCol = targetPosition % 3;
 
 	return Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
+}
+
+function hammingDistance(puzconfig) {
+	let hamming_distance = 0;
+	// calculate the number of misplaced tiles
+	puzconfig.forEach((number) => {
+		// check if the number is equal to the index + 1
+		if (number !== 9 && number !== puzconfig.indexOf(number) + 1) {
+			hamming_distance++;
+		}
+	});
+	return hamming_distance;
 }
 
 // Function to solve puzzle using A* algorithm
@@ -170,8 +183,8 @@ function solve() {
 	// Calculate the Manhattan Distance for each tile
 	const heuristicValues = puzzleConfiguration.map((number) =>
 		number === 0
-			? manhattanDistance(document.getElementById(number), 9)
-			: manhattanDistance(document.getElementById(number), number - 1)
+			? manhattanDistance(document.getElementById(number), 9, puzzleConfiguration)
+			: manhattanDistance(document.getElementById(number), number - 1, puzzleConfiguration)
 	);
 
 	// find the sum of the heuristic values
@@ -198,28 +211,39 @@ function solve() {
 			const new_puzzle_config = pseudo_moveTile(tile.id);
 			const new_heuristic_values = new_puzzle_config.map((number) =>
 				number === 0
-					? manhattanDistance(document.getElementById(number), 9)
+					? manhattanDistance(
+							document.getElementById(number),
+							9,
+							new_puzzle_config
+					  )
 					: manhattanDistance(
 							document.getElementById(number),
-							number - 1
+							number - 1,
+							new_puzzle_config
 					  )
 			);
+			console.log("new h values for tile ", tile, new_heuristic_values);
 			const new_heuristic_sum = new_heuristic_values.reduce(
 				(a, b) => a + b,
 				0
 			);
+			const new_hamming_distance = hammingDistance(new_puzzle_config);
 			possible_heuristic_sums.push({
-				new_heuristic_sum,
+				manhatten_heuristic_sum: new_heuristic_sum,
+				hamming_distance: new_hamming_distance,
+                final_heuristic_sum: new_heuristic_sum + new_hamming_distance,
+                puz_conf: new_puzzle_config,
 				tile_id: tile.id,
 			});
 		}
 	});
+    
 	// find lowest heuristic sum tile to move
 	const min_heuristic_sum = Math.min(
-		...possible_heuristic_sums.map((item) => item.new_heuristic_sum)
+		...possible_heuristic_sums.map((item) => item.hamming_distance)
 	);
 	min_heuristic_sum_tile = possible_heuristic_sums.find(
-		(item) => item.new_heuristic_sum === min_heuristic_sum
+		(item) => item.hamming_distance === min_heuristic_sum
 	);
 
 	console.log("The heurestics were: ", possible_heuristic_sums);
