@@ -60,7 +60,6 @@ class PC {
 
 // Sample puzzle configuration (numbers represent puzzle pieces)
 var board_puz_conf = new PC([2, 8, 4, 6, 9, 3, 1, 7, 5], null, null, 0);
-var puz_confs = [];
 
 // Function to compare puzzle configurations. that are arrays.
 function comparePuzzleConfigurations(puz_config1, puz_config2) {
@@ -121,18 +120,15 @@ function updatePuzzleBoard() {
 function moveTile(number) {
 	const tile = document.getElementById(number);
 
-	// Check if tile is movable
-	if (isMovable(tile)) {
-		// change the puzzle configuration
-		const index = board_puz_conf.get_puz_config().indexOf(parseInt(number));
-		const zeroIndex = board_puz_conf.get_puz_config().indexOf(9);
-		let post_move_puz_conf = board_puz_conf.get_puz_config().slice();
-		post_move_puz_conf[index] = 9;
-		post_move_puz_conf[zeroIndex] = parseInt(number);
-		console.log(post_move_puz_conf);
-		board_puz_conf.set_puz_config(post_move_puz_conf);
-		updatePuzzleBoard();
-	}
+	// change the puzzle configuration
+	const index = board_puz_conf.get_puz_config().indexOf(parseInt(number));
+	const zeroIndex = board_puz_conf.get_puz_config().indexOf(9);
+	let post_move_puz_conf = board_puz_conf.get_puz_config().slice();
+	post_move_puz_conf[index] = 9;
+	post_move_puz_conf[zeroIndex] = parseInt(number);
+	console.log(post_move_puz_conf);
+	board_puz_conf.set_puz_config(post_move_puz_conf);
+	updatePuzzleBoard();
 }
 
 // Function to move tile
@@ -282,8 +278,6 @@ function solve() {
 		console.log("The puzzle is already solved");
 		return;
 	}
-	console.log(board_puz_conf);
-	console.log("Is the puzzle solved:  ", isSolved());
 
 	// find the heuristics for the current puzzle configuration.
 	find_heuristics_for_puzconf(board_puz_conf);
@@ -303,6 +297,24 @@ function solve() {
 		// check if the current puzzle configuration is the solution
 		if (check_if_puz_conf_is_sol(current_puz_conf)) {
 			console.log("The puzzle is solved");
+			// find the path to the solution
+			let path = [];
+			let current = current_puz_conf;
+			while (current !== null) {
+				path.push(current);
+				current = current.get_parent();
+			}
+			console.log(path);
+			// animate the solution using the movetile method.
+			let i = path.length - 1;
+			let interval = setInterval(() => {
+				if (i < 0) {
+					clearInterval(interval);
+					return;
+				}
+				moveTile(path[i].get_tile_moved());
+				i--;
+			}, 1000);
 			return;
 		}
 
