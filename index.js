@@ -59,7 +59,7 @@ class PC {
 }
 
 // Sample puzzle configuration (numbers represent puzzle pieces)
-var board_puz_conf = new PC([1, 2, 3, 4, 5, 6, 7, 8, 9], null, null, 0);
+var board_puz_conf = new PC([2, 8, 4, 6, 9, 3, 1, 7, 5], null, null, 0);
 var puz_confs = [];
 
 // Function to compare puzzle configurations. that are arrays.
@@ -136,15 +136,15 @@ function moveTile(number) {
 }
 
 // Function to move tile
-function pseudo_moveTile(number) {
+function pseudo_moveTile(number, given_puz_conf) {
 	// change the puzzle configuration
-	const index = board_puz_conf.get_puz_config().indexOf(parseInt(number));
-	const zeroIndex = board_puz_conf.get_puz_config().indexOf(9);
+	const index = given_puz_conf.get_puz_config().indexOf(parseInt(number));
+	const zeroIndex = given_puz_conf.get_puz_config().indexOf(9);
 	const new_puzzle_config = new PC(
-		board_puz_conf.get_puz_config().slice(),
-		board_puz_conf,
+		given_puz_conf.get_puz_config().slice(),
+		given_puz_conf,
 		number,
-		board_puz_conf.get_g_score() + 1
+		given_puz_conf.get_g_score() + 1
 	);
 	let new_puz_conf = new_puzzle_config.get_puz_config();
 	new_puz_conf[index] = 9;
@@ -162,7 +162,7 @@ function pseudo_moveTile(number) {
 }
 
 // Function to check if tile is movable
-function isMovable(tile) {
+function isMovable(tile, puz_conf) {
 	// Get empty tile
 	const emptyTile = document.getElementById(9);
 
@@ -173,8 +173,8 @@ function isMovable(tile) {
 
 	// Check if tile is in same row as empty tile
 	// get its index in the puzzleconfig
-	const index = board_puz_conf.get_puz_config().indexOf(parseInt(tile.id));
-	const emptyIndex = board_puz_conf.get_puz_config().indexOf(9);
+	const index = puz_conf.get_puz_config().indexOf(parseInt(tile.id));
+	const emptyIndex = puz_conf.get_puz_config().indexOf(9);
 
 	// check if they are in the same row
 	if (Math.floor(index / 3) === Math.floor(emptyIndex / 3)) {
@@ -285,7 +285,7 @@ function solve() {
 	console.log(board_puz_conf);
 	console.log("Is the puzzle solved:  ", isSolved());
 
-	// find the heuristics for the current puzzle configuration. 
+	// find the heuristics for the current puzzle configuration.
 	find_heuristics_for_puzconf(board_puz_conf);
 
 	open_set = [board_puz_conf];
@@ -308,27 +308,31 @@ function solve() {
 
 		// remove the current puzzle configuration from the open set
 		open_set = open_set.filter(
-			(puz_conf) => puz_conf.get_puz_config() !== current_puz_conf.get_puz_config()
+			(puz_conf) =>
+				puz_conf.get_puz_config() !== current_puz_conf.get_puz_config()
 		);
-		
+
 		// add the current puzzle configuration to the closed set
 		closed_set.push(current_puz_conf);
 
 		// find the possible moves from the current puzzle configuration
 		const possible_moves = [];
 		current_puz_conf.get_puz_config().forEach((number) => {
-			if (isMovable(document.getElementById(number))) {
+			if (isMovable(document.getElementById(number), current_puz_conf)) {
 				possible_moves.push(number);
 			}
 		});
 
 		// for each possible move, create a new puzzle configuration and add it to the open set
 		possible_moves.forEach((move) => {
-			let new_puz_conf = pseudo_moveTile(move);
+			let new_puz_conf = pseudo_moveTile(move, current_puz_conf);
 			// check if the new puzzle configuration is already in the closed set
 			if (
 				closed_set.some((puz_conf) =>
-					comparePuzzleConfigurations(puz_conf.get_puz_config(), new_puz_conf.get_puz_config())
+					comparePuzzleConfigurations(
+						puz_conf.get_puz_config(),
+						new_puz_conf.get_puz_config()
+					)
 				)
 			) {
 				return;
@@ -336,7 +340,10 @@ function solve() {
 			// check if the new puzzle configuration is already in the open set
 			if (
 				open_set.some((puz_conf) =>
-					comparePuzzleConfigurations(puz_conf.get_puz_config(), new_puz_conf.get_puz_config())
+					comparePuzzleConfigurations(
+						puz_conf.get_puz_config(),
+						new_puz_conf.get_puz_config()
+					)
 				)
 			) {
 				return;
@@ -346,17 +353,29 @@ function solve() {
 			open_set.push(new_puz_conf);
 		});
 
-		// log everything 
-		console.log("_______________________________________________________________");
+		// log everything
+		console.log(
+			"_______________________________________________________________"
+		);
 		console.log("open set: ", open_set);
 		console.log("closed set: ", closed_set);
 		console.log("current puzzle configuration: ", current_puz_conf);
 		console.log("possible moves: ", possible_moves);
 		console.log("lowest f score: ", lowest_f_score);
-		console.log("current puzzle configuration f score: ", current_puz_conf.get_f_score());
-		console.log("current puzzle configuration g score: ", current_puz_conf.get_g_score());
-		console.log("current puzzle configuration h score: ", current_puz_conf.final_heuristic);
-		console.log("_______________________________________________________________\n\n\n\n");
-	
+		console.log(
+			"current puzzle configuration f score: ",
+			current_puz_conf.get_f_score()
+		);
+		console.log(
+			"current puzzle configuration g score: ",
+			current_puz_conf.get_g_score()
+		);
+		console.log(
+			"current puzzle configuration h score: ",
+			current_puz_conf.final_heuristic
+		);
+		console.log(
+			"_______________________________________________________________\n\n\n\n"
+		);
 	}
 }
