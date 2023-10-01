@@ -59,8 +59,8 @@ class PC {
 }
 // [2, 8, 4, 6, 9, 3, 1, 7, 5],
 // Sample puzzle configuration (numbers represent puzzle pieces)
-var board_puz_conf = new PC([2, 8, 4, 6, 9, 3, 1, 7, 5], null, null, 0);
-var number_elements = {};	
+var board_puz_conf = new PC([4, 9, 8, 2, 1, 3, 6, 7, 5], null, null, 0);
+var number_elements = {};
 // Function to compare puzzle configurations. that are arrays.
 function comparePuzzleConfigurations(puz_config1, puz_config2) {
 	// check each element of the array, even if one isnt matching, return false.
@@ -134,11 +134,13 @@ function moveTile(number) {
 
 // Function to move tile
 function pseudo_moveTile(number, given_puz_conf) {
+	const given_puz_conf_puz_config = given_puz_conf.get_puz_config();
+
 	// change the puzzle configuration
-	const index = given_puz_conf.get_puz_config().indexOf(parseInt(number));
-	const zeroIndex = given_puz_conf.get_puz_config().indexOf(9);
+	const index = given_puz_conf_puz_config.indexOf(parseInt(number));
+	const zeroIndex = given_puz_conf_puz_config.indexOf(9);
 	const new_puzzle_config = new PC(
-		given_puz_conf.get_puz_config().slice(),
+		given_puz_conf_puz_config.slice(),
 		given_puz_conf,
 		number,
 		given_puz_conf.get_g_score() + 1
@@ -160,7 +162,6 @@ function pseudo_moveTile(number, given_puz_conf) {
 
 // Function to check if tile is movable
 function isMovable(tile, puz_conf) {
-
 	// Check if tile is in same row or column as empty tile
 	if (tile === 9) {
 		return false;
@@ -284,6 +285,8 @@ function solve() {
 	open_set = [board_puz_conf];
 	closed_set = [];
 	console.time("solve");
+	const startTime = performance.now();
+
 	while (open_set.length > 0) {
 		// find the puzzle configuration with the lowest f score
 		let lowest_f_score = Math.min(
@@ -297,6 +300,20 @@ function solve() {
 		if (check_if_puz_conf_is_sol(current_puz_conf)) {
 			console.log("The puzzle is solved");
 			console.timeEnd("solve");
+			const endTime = performance.now();
+			const timeTaken = endTime - startTime;
+
+			// put details on the screen.
+			document.getElementById("time_taken").innerHTML =
+				"The Total Time Taken was: " + timeTaken + " milliseconds";
+
+			// put details on the screen.
+			document.getElementById("open_set").innerHTML =
+				"The Size of the Open Set was: " + open_set.length;
+
+			document.getElementById("closed_set").innerHTML =
+				"The Size of the Closed Set was: " + closed_set.length;
+
 			// find the path to the solution
 			let path = [];
 			let current = current_puz_conf;
@@ -304,6 +321,8 @@ function solve() {
 				path.push(current);
 				current = current.get_parent();
 			}
+			document.getElementById("depth").innerHTML =
+				"Depth of the Solution: " + path.length;
 			// animate the solution using the movetile method.
 			path.reverse();
 			console.log(path);

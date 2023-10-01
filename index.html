@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="retro">
+<html lang="en" data-theme="corporate">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -28,21 +28,6 @@
 					You can shuffle the Puzzle manually, and then click the
 					Solve button to see the solution.
 				</div>
-				<div class="text-3xl p-4 m-4">
-					Enter the Size of the Puzzle Grid
-				</div>
-				<div class="p-4 m-4 mt-0 pt-0">
-					<input
-						min="3"
-						max="10"
-						id="size-input"
-						value="3"
-						type="number"
-						placeholder="Type here"
-						class="input input-bordered input-accent w-full max-w-xs text-3xl"
-					/>
-				</div>
-
 				<div
 					class="p-4 m-4 mt-0 pt-0 flex gap-8 items-center justify-start"
 				>
@@ -64,11 +49,36 @@
 				</div>
 
 				<div
-					id="comment"
+					id="time_taken"
 					class="text-3xl text-base-content p-4 m-4 mt-0 pt-0"
 				>
-					Click Shuffle to start!
+					The Total Time Taken was: <span class="italic">Please Click Solve </span>
 				</div>
+				<div
+					id="open_set"
+					class="text-3xl text-base-content p-4 m-4 mt-0 pt-0"
+				>
+					The Size of the Open Set was: <span class="italic">Please Click Solve </span>
+				</div>
+				<div
+					id="closed_set"
+					class="text-3xl text-base-content p-4 m-4 mt-0 pt-0"
+				>
+					The Size of the Closed Set was: <span class="italic">Please Click Solve </span>
+				</div>
+				<div
+					id="heuristic"
+					class="text-3xl text-base-content p-4 m-4 mt-0 pt-0"
+				>
+					Heuristics Used: Manhattan Distance + Hamming Distance
+				</div>
+				<div
+					id="depth"
+					class="text-3xl text-base-content p-4 m-4 mt-0 pt-0"
+				>
+					Depth of the Solution: <span class="italic">Please Click Solve </span>
+				</div>
+
 			</div>
 			<div class="divider divider-horizontal"></div>
 			<div
