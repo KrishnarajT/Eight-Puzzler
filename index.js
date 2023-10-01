@@ -1,6 +1,18 @@
 // Sample puzzle configuration (numbers represent puzzle pieces)
-var puzzleConfiguration = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // 9 represents the empty space
+var puzzleConfiguration = [2, 8, 4, 6, 9, 3, 1, 7, 5]; // 9 represents the empty space
 var puz_confs = [];
+
+
+// Function to compare puzzle configurations. that are arrays. 
+function comparePuzzleConfigurations(puz_config1, puz_config2) {
+	// check each element of the array, even if one isnt matching, return false. 
+	for (let i = 0; i < puz_config1.length; i++) {
+		if (puz_config1[i] !== puz_config2[i]) {
+			return false;
+		}
+	}
+	return true;
+}
 
 // Function to create puzzle board
 function createPuzzleBoard() {
@@ -124,18 +136,8 @@ function isMovable(tile) {
 
 // Function to check if puzzle is solved
 function isSolved() {
-	// Get puzzle board element and puzzle items
-	const puzzleBoard = document.getElementById("puzzle-board");
-	const puzzleItems = puzzleBoard.childNodes;
-
-	// Check if puzzle items are in correct order
-	for (let i = 0; i < puzzleItems.length - 1; i++) {
-		if (puzzleItems[i].id !== puzzleItems[i + 1].textContent) {
-			return false;
-		}
-	}
-
-	return true;
+	// Check if puzzle configuration is equal to initial puzzle configuration
+	return JSON.stringify(puzzleConfiguration) === JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 }
 
 // Function to shuffle puzzle
@@ -183,8 +185,8 @@ function solve() {
 	// Calculate the Manhattan Distance for each tile
 	const heuristicValues = puzzleConfiguration.map((number) =>
 		number === 0
-			? manhattanDistance(document.getElementById(number), 9, puzzleConfiguration)
-			: manhattanDistance(document.getElementById(number), number - 1, puzzleConfiguration)
+			? manhattanDistance(document.getElementById(number), 9, puzzleConfiguration) 
+			: manhattanDistance(document.getElementById(number), number - 1, puzzleConfiguration) 
 	);
 
 	// find the sum of the heuristic values
@@ -203,12 +205,17 @@ function solve() {
 		return heuristicValues[aIndex] - heuristicValues[bIndex];
 	});
 
+
 	// check if each of those tiles is movable, if it is then find the new heuristic sum of the resulting config by moving that tile. do this for all tiles, and then finally check which sum was the lowest. move that tile.
 	let min_heuristic_sum_tile;
 	const possible_heuristic_sums = [];
 	orderedTiles.forEach((tile) => {
 		if (isMovable(tile)) {
 			const new_puzzle_config = pseudo_moveTile(tile.id);
+			if (puz_confs.some((puz_conf) => comparePuzzleConfigurations(puz_conf, new_puzzle_config))) {
+				return;
+			}
+			console.log("new puzzle config", new_puzzle_config, "is not part of ", puz_confs)
 			const new_heuristic_values = new_puzzle_config.map((number) =>
 				number === 0
 					? manhattanDistance(
@@ -240,10 +247,10 @@ function solve() {
     
 	// find lowest heuristic sum tile to move
 	const min_heuristic_sum = Math.min(
-		...possible_heuristic_sums.map((item) => item.hamming_distance)
+		...possible_heuristic_sums.map((item) => item.final_heuristic_sum)
 	);
 	min_heuristic_sum_tile = possible_heuristic_sums.find(
-		(item) => item.hamming_distance === min_heuristic_sum
+		(item) => item.final_heuristic_sum === min_heuristic_sum
 	);
 
 	console.log("The heurestics were: ", possible_heuristic_sums);
@@ -256,8 +263,9 @@ function solve() {
 
 	setTimeout(() => {
 		moveTile(min_heuristic_sum_tile.tile_id);
-	}, 1000);
+		puz_confs.push(min_heuristic_sum_tile.puz_conf);
+	}, 80);
 	setTimeout(() => {
 		solve();
-	}, 1000);
+	}, 80);
 }
