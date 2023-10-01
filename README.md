@@ -4,7 +4,7 @@ An Implementation of the A\* algorithm to solve the classic 8 Puzzle. Made with 
 
 # Demo
 
-![Demo](./demo.mp4)
+![Demo](./demo.gif)
 
 # Screenshots
 
