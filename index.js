@@ -304,17 +304,19 @@ function solve() {
 				path.push(current);
 				current = current.get_parent();
 			}
-			console.log(path);
 			// animate the solution using the movetile method.
-			let i = path.length - 1;
+			path.reverse();
+			console.log(path);
+
+			let i = 1;
 			let interval = setInterval(() => {
-				if (i < 0) {
+				if (i === path.length) {
 					clearInterval(interval);
 					return;
 				}
 				moveTile(path[i].get_tile_moved());
-				i--;
-			}, 1000);
+				i++;
+			}, 500);
 			return;
 		}
 
