@@ -59,7 +59,7 @@ class PC {
 }
 // [2, 8, 4, 6, 9, 3, 1, 7, 5],
 // Sample puzzle configuration (numbers represent puzzle pieces)
-var board_puz_conf = new PC([4, 9, 8, 2, 1, 3, 6, 7, 5], null, null, 0);
+var board_puz_conf = new PC([2, 8, 4, 6, 9, 3, 1, 7, 5], null, null, 0);
 var number_elements = {};
 // Function to compare puzzle configurations. that are arrays.
 function comparePuzzleConfigurations(puz_config1, puz_config2) {
@@ -267,7 +267,7 @@ function FindHammingDistanceHeuristic(puzconfig) {
 
 // Function to find both heuristics for a given puzzle configuration
 function find_heuristics_for_puzconf(puz_conf) {
-	FindPuzConfManhattanHeuristic(puz_conf);
+	// FindPuzConfManhattanHeuristic(puz_conf);
 	FindHammingDistanceHeuristic(puz_conf);
 }
 
