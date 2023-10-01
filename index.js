@@ -57,10 +57,10 @@ class PC {
 		this.f_score = this.gscore + this.final_heuristic;
 	}
 }
-
+// [2, 8, 4, 6, 9, 3, 1, 7, 5],
 // Sample puzzle configuration (numbers represent puzzle pieces)
 var board_puz_conf = new PC([2, 8, 4, 6, 9, 3, 1, 7, 5], null, null, 0);
-
+var number_elements = {};	
 // Function to compare puzzle configurations. that are arrays.
 function comparePuzzleConfigurations(puz_config1, puz_config2) {
 	// check each element of the array, even if one isnt matching, return false.
@@ -74,6 +74,7 @@ function comparePuzzleConfigurations(puz_config1, puz_config2) {
 
 // Function to create puzzle board
 function createPuzzleBoard() {
+	number_elements = {};
 	// Get puzzle board element
 	const puzzleBoard = document.getElementById("puzzle-board");
 
@@ -86,6 +87,7 @@ function createPuzzleBoard() {
 				"puzzle-item bg-transparent text-4xl rounded-md w-28 h-28 flex items-center justify-center";
 			gridItem.id = 9;
 			puzzleBoard.appendChild(gridItem);
+			number_elements[9] = gridItem;
 			return;
 		}
 		// Create grid item
@@ -95,6 +97,7 @@ function createPuzzleBoard() {
 		gridItem.textContent = number;
 		gridItem.id = number;
 		puzzleBoard.appendChild(gridItem);
+		number_elements[number] = gridItem;
 
 		// Add click event listener for each grid item
 		gridItem.addEventListener("click", () => moveTile(number));
@@ -118,8 +121,6 @@ function updatePuzzleBoard() {
 
 // Function to move tile
 function moveTile(number) {
-	const tile = document.getElementById(number);
-
 	// change the puzzle configuration
 	const index = board_puz_conf.get_puz_config().indexOf(parseInt(number));
 	const zeroIndex = board_puz_conf.get_puz_config().indexOf(9);
@@ -159,17 +160,15 @@ function pseudo_moveTile(number, given_puz_conf) {
 
 // Function to check if tile is movable
 function isMovable(tile, puz_conf) {
-	// Get empty tile
-	const emptyTile = document.getElementById(9);
 
 	// Check if tile is in same row or column as empty tile
-	if (tile.id === emptyTile.id) {
+	if (tile === 9) {
 		return false;
 	}
 
 	// Check if tile is in same row as empty tile
 	// get its index in the puzzleconfig
-	const index = puz_conf.get_puz_config().indexOf(parseInt(tile.id));
+	const index = puz_conf.get_puz_config().indexOf(parseInt(tile));
 	const emptyIndex = puz_conf.get_puz_config().indexOf(9);
 
 	// check if they are in the same row
@@ -284,7 +283,7 @@ function solve() {
 
 	open_set = [board_puz_conf];
 	closed_set = [];
-
+	console.time("solve");
 	while (open_set.length > 0) {
 		// find the puzzle configuration with the lowest f score
 		let lowest_f_score = Math.min(
@@ -297,6 +296,7 @@ function solve() {
 		// check if the current puzzle configuration is the solution
 		if (check_if_puz_conf_is_sol(current_puz_conf)) {
 			console.log("The puzzle is solved");
+			console.timeEnd("solve");
 			// find the path to the solution
 			let path = [];
 			let current = current_puz_conf;
@@ -332,7 +332,7 @@ function solve() {
 		// find the possible moves from the current puzzle configuration
 		const possible_moves = [];
 		current_puz_conf.get_puz_config().forEach((number) => {
-			if (isMovable(document.getElementById(number), current_puz_conf)) {
+			if (isMovable(number, current_puz_conf)) {
 				possible_moves.push(number);
 			}
 		});
@@ -368,28 +368,28 @@ function solve() {
 		});
 
 		// log everything
-		console.log(
-			"_______________________________________________________________"
-		);
-		console.log("open set: ", open_set);
-		console.log("closed set: ", closed_set);
-		console.log("current puzzle configuration: ", current_puz_conf);
-		console.log("possible moves: ", possible_moves);
-		console.log("lowest f score: ", lowest_f_score);
-		console.log(
-			"current puzzle configuration f score: ",
-			current_puz_conf.get_f_score()
-		);
-		console.log(
-			"current puzzle configuration g score: ",
-			current_puz_conf.get_g_score()
-		);
-		console.log(
-			"current puzzle configuration h score: ",
-			current_puz_conf.final_heuristic
-		);
-		console.log(
-			"_______________________________________________________________\n\n\n\n"
-		);
+		// console.log(
+		// 	"_______________________________________________________________"
+		// );
+		// console.log("open set: ", open_set);
+		// console.log("closed set: ", closed_set);
+		// console.log("current puzzle configuration: ", current_puz_conf);
+		// console.log("possible moves: ", possible_moves);
+		// console.log("lowest f score: ", lowest_f_score);
+		// console.log(
+		// 	"current puzzle configuration f score: ",
+		// 	current_puz_conf.get_f_score()
+		// );
+		// console.log(
+		// 	"current puzzle configuration g score: ",
+		// 	current_puz_conf.get_g_score()
+		// );
+		// console.log(
+		// 	"current puzzle configuration h score: ",
+		// 	current_puz_conf.final_heuristic
+		// );
+		// console.log(
+		// 	"_______________________________________________________________\n\n\n\n"
+		// );
 	}
 }
